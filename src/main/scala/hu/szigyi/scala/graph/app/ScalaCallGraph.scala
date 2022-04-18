@@ -1,7 +1,6 @@
 package hu.szigyi.scala.graph.app
 
 import cats.effect.{ExitCode, IO, IOApp}
-import cats.syntax.traverse.toTraverseOps
 import hu.szigyi.scala.graph.Model._
 import hu.szigyi.scala.graph.visitor.ClassVisitor
 import org.apache.bcel.classfile.ClassParser
@@ -11,25 +10,29 @@ import java.util.jar.JarFile
 
 object ScalaCallGraph extends IOApp {
   override def run(args: List[String]): IO[ExitCode] =
-    runApp(args).map(_ => ExitCode.Success)
+    (for {
+      jarPath        <- IO.pure(args.head)
+      packagePattern  = Option.when(args.size > 1)(args(1))
+      result         <- callGraph(jarPath, packagePattern)
+    } yield result).map(_ => ExitCode.Success)
 
-  def runApp(args: List[String]): IO[Set[ClassLevel]] =
+  def callGraph(jarPath: String, packagePattern: Option[String]): IO[Set[ClassLevel]] =
     for {
-      jars        <- args.traverse(toJarFile)
-      classParsers = jars.flatMap { case (jarPath, jarFile) => toClassParsers(jarPath, jarFile) }
-      methodCalls  = classParsers.flatMap(cp => toMethodCalls(cp))
-      classLevels  = toClassLevelCalls(methodCalls)
-      _            = classLevels.map(println)
-    } yield classLevels
+      jarFile      <- toJarFile(jarPath)
+      classParsers  = toClassParsers(jarPath, jarFile)
+      methodCalls   = classParsers.flatMap(cp => toMethodCalls(cp))
+      classLevels   = toClassLevelCalls(methodCalls)
+      filtered      = filterByPackage(packagePattern, classLevels)
+    } yield filtered
 
-  def toJarFile(jarPath: String): IO[(String, JarFile)] = {
+  def toJarFile(jarPath: String): IO[JarFile] = {
     val file = new File(jarPath)
-    if (file.exists()) IO.pure((jarPath, new JarFile(file)))
+    if (file.exists()) IO.pure(new JarFile(file))
     else IO.raiseError(Error(s"Jar file $jarPath does not exist"))
   }
 
   def toClassParsers(jarPath: String, jar: JarFile): Seq[ClassParser] = {
-    import scala.jdk.CollectionConverters.*
+    import scala.jdk.CollectionConverters._
     jar.entries().asScala.toSeq.flatMap { entry =>
       if (entry.isDirectory || !entry.getName.endsWith(".class")) None
       else Some(new ClassParser(jarPath, entry.getName))
@@ -40,20 +43,34 @@ object ScalaCallGraph extends IOApp {
     new ClassVisitor(classParser.parse()).methodCalls
 
   def toClassLevelCalls(methodCalls: Seq[Invokation]): Set[ClassLevel] = {
-    def findCallers[T <: Invokation](caller: ClassMethod, cs: Seq[Invokation]): Seq[Invokation] =
-      cs.collect { case c if c.caller == caller && c.isInstanceOf[T] => c }
 
     val calledBy = methodCalls.groupBy(_.called.className)
     methodCalls.map { call =>
       val callers = calledBy(call.called.className)
       val invokes = callers.toSet.map {
-        case VirtualInvokation(caller, _)   => Virtual(caller.className, findCallers[VirtualInvokation](caller, callers).size)
-        case InterfaceInvokation(caller, _) => InterferenceRef(caller.className, findCallers[InterfaceInvokation](caller, callers).size)
-        case SpecialInvokation(caller, _)   => Special(caller.className, findCallers[SpecialInvokation](caller, callers).size)
-        case StaticInvokation(caller, _)    => Static(caller.className, findCallers[StaticInvokation](caller, callers).size)
-        case DynamicInvokation(caller, _)   => Dynamic(caller.className, findCallers[DynamicInvokation](caller, callers).size)
+        case VirtualInvokation(caller, _)   => Virtual(caller.className, callers.collect { case c: VirtualInvokation if c.caller == caller => c }.size)
+        case InterfaceInvokation(caller, _) => InterferenceRef(caller.className, callers.collect { case c: InterfaceInvokation if c.caller == caller => c }.size)
+        case SpecialInvokation(caller, _)   => Special(caller.className, callers.collect { case c: SpecialInvokation if c.caller == caller => c }.size)
+        case StaticInvokation(caller, _)    => Static(caller.className, callers.collect { case c: StaticInvokation if c.caller == caller => c }.size)
+        case DynamicInvokation(caller, _)   => Dynamic(caller.className, callers.collect { case c: DynamicInvokation if c.caller == caller => c }.size)
       }
       ClassLevel(call.called.className, invokes)
     }.toSet
+  }
+
+  def filterByPackage(rawPackagePattern: Option[String], classLevels: Set[ClassLevel]): Set[ClassLevel] = {
+    val packagePattern = rawPackagePattern match {
+      case Some(value) => value.replace(".", "\\.") + ".*"
+      case None        => ".*"
+    }
+    classLevels.flatMap { cl =>
+      if (cl.referencedClass.matches(packagePattern)) {
+        val references = cl.references.filter(_.className.matches(packagePattern))
+        if (references.nonEmpty) Some(cl.copy(references = references))
+        else None
+      } else {
+        None
+      }
+    }
   }
 }

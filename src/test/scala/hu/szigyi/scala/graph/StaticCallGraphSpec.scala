@@ -29,7 +29,7 @@ class StaticCallGraphSpec extends AnyFreeSpec with Matchers {
           }""")
       val jarFile = builder.build()
 
-      val result = ScalaCallGraph.runApp(List[String](jarFile.getPath)).unsafeRunSync()
+      val result = ScalaCallGraph.callGraph(jarFile.getPath, None).unsafeRunSync()
 
       result shouldBe Set(
         ClassLevel("java.lang.Object", Set(Special("ClassA", 1), Special("ClassB$", 1))),
@@ -57,7 +57,7 @@ class StaticCallGraphSpec extends AnyFreeSpec with Matchers {
           }""")
       val jarFile = builder.build()
 
-      val result = ScalaCallGraph.runApp(List[String](jarFile.getPath)).unsafeRunSync()
+      val result = ScalaCallGraph.callGraph(jarFile.getPath, None).unsafeRunSync()
 
       result shouldBe Set(
         ClassLevel("java.lang.Object", Set(Special("ClassA$", 1), Special("ClassB$", 1))),
