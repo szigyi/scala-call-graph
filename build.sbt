@@ -8,6 +8,8 @@ lazy val root = project
 
     scalaVersion := scala3Version,
 
+    (Test / parallelExecution) := false,
+
     libraryDependencies ++= Seq(
       "ch.qos.logback" % "logback-classic" % "1.2.11",
       "com.typesafe.scala-logging" %% "scala-logging" % "3.9.4",
@@ -18,6 +20,5 @@ lazy val root = project
       "org.typelevel" %% "cats-effect" % "3.3.11",
 
       "org.scalatest" %% "scalatest" % "3.2.11" % Test
-//      "org.typelevel" %% "cats-effect-testing-scalatest" % "1.4.0"
     )
   )
