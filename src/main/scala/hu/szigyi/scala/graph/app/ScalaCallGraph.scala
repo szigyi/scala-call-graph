@@ -15,12 +15,11 @@ object ScalaCallGraph extends IOApp {
 
   def runApp(args: List[String]): IO[Set[ClassLevel]] =
     for {
-      jars <- args.traverse(toJarFile)
-      classParsers <- IO.pure(jars.flatMap { case (jarPath, jarFile) => toClassParsers(jarPath, jarFile) })
-      methodCalls <- IO.pure(classParsers.flatMap(cp => toMethodCalls(cp)))
-      //      _            = methodCalls.map(m => println(m))
-      classLevels = toClassLevelCalls(methodCalls)
-      _ = classLevels.map(println)
+      jars        <- args.traverse(toJarFile)
+      classParsers = jars.flatMap { case (jarPath, jarFile) => toClassParsers(jarPath, jarFile) }
+      methodCalls  = classParsers.flatMap(cp => toMethodCalls(cp))
+      classLevels  = toClassLevelCalls(methodCalls)
+      _            = classLevels.map(println)
     } yield classLevels
 
   def toJarFile(jarPath: String): IO[(String, JarFile)] = {
@@ -48,11 +47,11 @@ object ScalaCallGraph extends IOApp {
     methodCalls.map { call =>
       val callers = calledBy(call.called.className)
       val invokes = callers.toSet.map {
-        case VirtualInvokation(caller, _) => Virtual(caller.className, findCallers[VirtualInvokation](caller, callers).size)
+        case VirtualInvokation(caller, _)   => Virtual(caller.className, findCallers[VirtualInvokation](caller, callers).size)
         case InterfaceInvokation(caller, _) => InterferenceRef(caller.className, findCallers[InterfaceInvokation](caller, callers).size)
-        case SpecialInvokation(caller, _) => Special(caller.className, findCallers[SpecialInvokation](caller, callers).size)
-        case StaticInvokation(caller, _) => Static(caller.className, findCallers[StaticInvokation](caller, callers).size)
-        case DynamicInvokation(caller, _) => Dynamic(caller.className, findCallers[DynamicInvokation](caller, callers).size)
+        case SpecialInvokation(caller, _)   => Special(caller.className, findCallers[SpecialInvokation](caller, callers).size)
+        case StaticInvokation(caller, _)    => Static(caller.className, findCallers[StaticInvokation](caller, callers).size)
+        case DynamicInvokation(caller, _)   => Dynamic(caller.className, findCallers[DynamicInvokation](caller, callers).size)
       }
       ClassLevel(call.called.className, invokes)
     }.toSet
