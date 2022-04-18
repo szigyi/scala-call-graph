@@ -1,8 +1,9 @@
-package hu.szigyi.scala.graph
+package hu.szigyi.scala.graph.visitor
 
+import hu.szigyi.scala.graph.Model._
+import hu.szigyi.scala.graph.DynamicCallManager
 import org.apache.bcel.classfile.{ConstantPool, EmptyVisitor, JavaClass, Method}
 import org.apache.bcel.generic.{ConstantPoolGen, MethodGen}
-import hu.szigyi.scala.graph.Model._
 
 import scala.collection.mutable
 

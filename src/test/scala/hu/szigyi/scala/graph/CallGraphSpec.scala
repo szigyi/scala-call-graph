@@ -3,7 +3,7 @@ package hu.szigyi.scala.graph
 import cats.effect.unsafe.implicits.global
 import cats.effect.IO
 import hu.szigyi.scala.graph.Model._
-import hu.szigyi.scala.graph.ScalaCallGraph
+import hu.szigyi.scala.graph.app.ScalaCallGraph
 import org.scalatest.freespec.{AnyFreeSpec, AsyncFreeSpec}
 import org.scalatest.matchers.should.Matchers
 import testing.JarsBuilder

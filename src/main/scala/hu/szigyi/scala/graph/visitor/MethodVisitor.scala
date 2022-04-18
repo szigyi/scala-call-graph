@@ -1,9 +1,8 @@
-package hu.szigyi.scala.graph
-
-import org.apache.bcel.classfile.JavaClass
-import org.apache.bcel.generic._
+package hu.szigyi.scala.graph.visitor
 
 import hu.szigyi.scala.graph.Model._
+import org.apache.bcel.classfile.JavaClass
+import org.apache.bcel.generic._
 
 import scala.collection.mutable
 
