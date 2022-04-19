@@ -1,4 +1,4 @@
-package hu.szigyi.scala.graph
+package hu.szigyi.scala.graph.e2e
 
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
