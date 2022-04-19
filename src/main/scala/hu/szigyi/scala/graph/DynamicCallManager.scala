@@ -46,10 +46,12 @@ class DynamicCallManager {
       while (matcher.find) {
         val bootIndex = matcher.group(1).toInt
         val bootMethod = boots(bootIndex)
-        val calledIndex = bootMethod.getBootstrapArguments()(CALL_HANDLE_INDEX_ARGUMENT)
-        val calledName = getMethodNameFromHandleIndex(constantPool, calledIndex)
-        val callerName = method.getName
-        dynamicCallers.put(calledName, callerName)
+        if (bootMethod.getBootstrapArguments.length > 1) {
+          val calledIndex = bootMethod.getBootstrapArguments()(CALL_HANDLE_INDEX_ARGUMENT)
+          val calledName = getMethodNameFromHandleIndex(constantPool, calledIndex)
+          val callerName = method.getName
+          dynamicCallers.put(calledName, callerName)
+        }
       }
     }
   }
