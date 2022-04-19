@@ -11,7 +11,7 @@ import java.io.File
 import java.time.Instant
 import java.util.jar.JarFile
 
-object Service extends StrictLogging {
+class Service extends StrictLogging {
 
   def toJarFile(jarPath: String): IO[JarFile] = {
     val file = new File(jarPath)

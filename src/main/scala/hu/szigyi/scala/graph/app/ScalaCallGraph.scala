@@ -2,15 +2,16 @@ package hu.szigyi.scala.graph.app
 
 import cats.effect.{ExitCode, IO, IOApp}
 import com.typesafe.scalalogging.StrictLogging
-import hu.szigyi.scala.graph.Model._
-import hu.szigyi.scala.graph.service.Service._
+import hu.szigyi.scala.graph.Model.*
+import hu.szigyi.scala.graph.service.Service
 import hu.szigyi.scala.graph.visitor.ClassVisitor
 import org.apache.bcel.classfile.ClassParser
 
 import java.io.File
 import java.util.jar.JarFile
 
-object ScalaCallGraph extends StrictLogging {
+class ScalaCallGraph(service: Service) extends StrictLogging {
+  import service.*
 
   def callGraph(jarPath: String, packagePattern: Option[String]): IO[Set[ClassLevel]] =
     for {

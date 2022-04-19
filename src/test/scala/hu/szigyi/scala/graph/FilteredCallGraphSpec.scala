@@ -2,8 +2,9 @@ package hu.szigyi.scala.graph
 
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
-import hu.szigyi.scala.graph.Model._
+import hu.szigyi.scala.graph.Model.*
 import hu.szigyi.scala.graph.app.ScalaCallGraph
+import hu.szigyi.scala.graph.service.Service
 import org.scalatest.freespec.{AnyFreeSpec, AsyncFreeSpec}
 import org.scalatest.matchers.should.Matchers
 import testing.JarsBuilder
@@ -46,7 +47,7 @@ class FilteredCallGraphSpec extends AnyFreeSpec with Matchers {
         }""")
     val jarFile = builder.build()
 
-    val result = ScalaCallGraph.callGraph(jarFile.getPath, Some("main.sub")).unsafeRunSync()
+    val result = new ScalaCallGraph(new Service).callGraph(jarFile.getPath, Some("main.sub")).unsafeRunSync()
 
     result shouldBe Set(
       ClassLevel("main.sub.a.ClassA", Set(Virtual("main.sub.b.ClassB", 1))),

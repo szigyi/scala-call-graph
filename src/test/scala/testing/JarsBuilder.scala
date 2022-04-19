@@ -2,14 +2,14 @@ package testing
 
 import com.typesafe.scalalogging.StrictLogging
 import testing.ScalaIO
-import testing.ScalaIO._
+import testing.ScalaIO.*
 
-import java.io._
+import java.io.*
 import java.util.jar.{Attributes, JarEntry, JarOutputStream, Manifest}
 import javax.tools.JavaFileObject
 import scala.collection.mutable
 import scala.language.postfixOps
-import scala.sys.process._
+import scala.sys.process.*
 
 class JarsBuilder extends StrictLogging {
 
@@ -34,7 +34,7 @@ class JarsBuilder extends StrictLogging {
     srcDir.mkdirs()
 
     logger.info(s"Writing ${classFiles.size} scala classes to $TEMP_DIR")
-    import scala.jdk.CollectionConverters._
+    import scala.jdk.CollectionConverters.*
     classFiles.toSeq.foreach { case (className, classBody) =>
       writeAsScalaFile(srcDir, className, classBody)
     }

@@ -1,6 +1,6 @@
-package hu.szigyi.scala.graph
+package hu.szigyi.scala.graph.service
 
-import org.apache.bcel.classfile._
+import org.apache.bcel.classfile.*
 
 import java.util.regex.Pattern
 import scala.collection.mutable
