@@ -29,7 +29,7 @@ object ScalaIO extends StrictLogging {
 
   def createOrClearTempDir(tempDir: File): Unit = {
     def recursiveDelete(dir: File): Unit = {
-      logger.debug(s"Deleting files in ${dir.getPath}")
+      logger.trace(s"Deleting files in ${dir.getPath}")
       dir.listFiles().map { file =>
         if (file.isDirectory) {
           recursiveDelete(file)
