@@ -1,8 +1,7 @@
 package hu.szigyi.scala.graph
 
 import hu.szigyi.scala.graph.Model.{ClassLevel, Virtual}
-import hu.szigyi.scala.graph.app.ScalaCallGraph
-import hu.szigyi.scala.graph.app.ScalaCallGraph.filterByPackage
+import hu.szigyi.scala.graph.service.Service.filterByPackage
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.should.Matchers
 

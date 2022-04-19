@@ -10,7 +10,6 @@ import scala.collection.mutable
 class ClassVisitor(clazz: JavaClass) extends EmptyVisitor {
   private val collectedMethodCalls = mutable.ListBuffer.empty[Invokation]
   private val constants = new ConstantPoolGen(clazz.getConstantPool)
-  private val classReferenceFormat = s"C: ${clazz.getClassName} %s"
   private val dcManager = new DynamicCallManager()
 
   def methodCalls: Seq[Invokation] = {
@@ -31,7 +30,7 @@ class ClassVisitor(clazz: JavaClass) extends EmptyVisitor {
     for (i <- 0 until constantPool.getLength) {
       val constant = constantPool.getConstant(i)
       if (null != constant && constant.getTag == 7) {
-        println(String.format(classReferenceFormat, constantPool.constantToString(constant)))
+//        println(String.format(classReferenceFormat, constantPool.constantToString(constant)))
       }
     }
   }
