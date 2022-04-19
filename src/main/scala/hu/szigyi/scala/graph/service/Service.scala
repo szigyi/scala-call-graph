@@ -34,12 +34,12 @@ class Service extends StrictLogging {
     val calledBy = methodCalls.groupBy(_.called.className)
     methodCalls.zipWithIndex.map { case (call, index) =>
       val callers: Seq[Invokation] = calledBy(call.called.className)
-      val callersByClass: Map[String, Seq[Invokation]] = callers.groupBy(_.getClass.getName) // to speed up the look ups
-      val virtualCallers = callersByClass.getOrElse("VirtualInvokation", Seq.empty)
+      val callersByClass   = callers.groupBy(_.getClass.getSimpleName) // to speed up the look ups
+      val virtualCallers   = callersByClass.getOrElse("VirtualInvokation", Seq.empty)
       val interfaceCallers = callersByClass.getOrElse("InterfaceInvokation", Seq.empty)
-      val specialCallers = callersByClass.getOrElse("SpecialInvokation", Seq.empty)
-      val staticCallers = callersByClass.getOrElse("StaticInvokation", Seq.empty)
-      val dynamicCallers = callersByClass.getOrElse("DynamicInvokation", Seq.empty)
+      val specialCallers   = callersByClass.getOrElse("SpecialInvokation", Seq.empty)
+      val staticCallers    = callersByClass.getOrElse("StaticInvokation", Seq.empty)
+      val dynamicCallers   = callersByClass.getOrElse("DynamicInvokation", Seq.empty)
 
       val invokes = callers.toSet.map {
         case VirtualInvokation(caller, _)   => Virtual(caller.className, virtualCallers.collect { case c if c.caller == caller => c }.size)
