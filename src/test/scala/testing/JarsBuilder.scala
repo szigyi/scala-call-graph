@@ -1,9 +1,8 @@
 package testing
 
 import com.typesafe.scalalogging.StrictLogging
-import testing.TestingIO
+import hu.szigyi.scala.graph.ScalaIO
 import testing.TestingIO.*
-import hu.szigyi.scala.graph.ScalaIO.*
 
 import java.io.*
 import java.util.jar.{Attributes, JarEntry, JarOutputStream, Manifest}
@@ -12,7 +11,7 @@ import scala.collection.mutable
 import scala.language.postfixOps
 import scala.sys.process.*
 
-class JarsBuilder extends StrictLogging {
+class JarsBuilder(io: ScalaIO) extends StrictLogging {
 
   private val TEMP_DIR = "/tmp/graph/classes/"
   private val classFiles = mutable.ListBuffer.empty[(String, String)]
@@ -37,11 +36,11 @@ class JarsBuilder extends StrictLogging {
     logger.info(s"Writing ${classFiles.size} scala classes to $TEMP_DIR")
     import scala.jdk.CollectionConverters.*
     classFiles.toSeq.foreach { case (className, classBody) =>
-      writeFile(srcDir, className + ".scala", classBody)
+      io.writeFile(srcDir, className + ".scala", classBody)
     }
 
-    writeFile(root, "build.sbt", buildSbt)
-    writeFile(root, "build.sbt", buildSbt)
+    io.writeFile(root, "build.sbt", buildSbt)
+    io.writeFile(root, "build.sbt", buildSbt)
 
     logger.info("Building Jar from compiled classes")
     logger.info(Process("sbt package", new File(TEMP_DIR)).!!)

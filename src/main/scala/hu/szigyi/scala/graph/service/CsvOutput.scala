@@ -1,5 +1,6 @@
 package hu.szigyi.scala.graph.service
 
+import com.typesafe.scalalogging.StrictLogging
 import hu.szigyi.scala.graph.Model
 import hu.szigyi.scala.graph.Model.{ClassLevel, ClassMethod, Reference, VirtualInvokation}
 import hu.szigyi.scala.graph.service.CsvOutput.*
@@ -9,7 +10,7 @@ import scala.deriving.*
 import scala.compiletime.summonAll
 import java.nio.file.Path
 
-class CsvOutput {
+class CsvOutput extends StrictLogging {
 
   def toCsv(classLevels: Set[ClassLevel]): String = {
     val flattenedInvokations = classLevels.flatMap { classLevel =>
@@ -21,6 +22,7 @@ class CsvOutput {
         case Model.Dynamic(className, count)         => ClassInvokation(classLevel.referencedClass, className, count, "dynamic")
       }
     }.toList
+    logger.info(s"Converting references to ${flattenedInvokations.size} lines of CSV")
     transform(flattenedInvokations)
   }
 }

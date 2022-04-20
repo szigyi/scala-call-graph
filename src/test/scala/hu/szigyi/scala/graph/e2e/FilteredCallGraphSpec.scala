@@ -3,6 +3,7 @@ package hu.szigyi.scala.graph.e2e
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import hu.szigyi.scala.graph.Model.*
+import hu.szigyi.scala.graph.ScalaIO
 import hu.szigyi.scala.graph.app.ScalaCallGraph
 import hu.szigyi.scala.graph.service.Service
 import org.scalatest.freespec.{AnyFreeSpec, AsyncFreeSpec}
@@ -14,7 +15,7 @@ import java.io.{ByteArrayOutputStream, File, PrintStream}
 class FilteredCallGraphSpec extends AnyFreeSpec with Matchers {
 
   "should return the filtered references" in {
-    val builder = new JarsBuilder()
+    val builder = new JarsBuilder(new ScalaIO)
     builder.add("ClassA",
       """
         package main.sub.a
@@ -47,7 +48,7 @@ class FilteredCallGraphSpec extends AnyFreeSpec with Matchers {
         }""")
     val jarFile = builder.build()
 
-    val result = new ScalaCallGraph(new Service).callGraph(jarFile.getPath, Some("main.sub")).unsafeRunSync()
+    val result = new ScalaCallGraph(new Service).callGraph(jarFile, Some("main.sub")).unsafeRunSync()
 
     result shouldBe Set(
       ClassLevel("main.sub.a.ClassA", Set(Virtual("main.sub.b.ClassB", 1))),

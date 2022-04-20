@@ -13,16 +13,15 @@ import java.util.jar.JarFile
 
 class Service extends StrictLogging {
 
-  def toJarFile(jarPath: String): IO[JarFile] = {
-    val file = new File(jarPath)
-    if (file.exists()) IO.pure(new JarFile(file))
-    else IO.raiseError(Error(s"Jar file $jarPath does not exist"))
+  def toJarFile(jarFile: File): IO[JarFile] = {
+    if (jarFile.exists()) IO.pure(new JarFile(jarFile))
+    else IO.raiseError(Error(s"Jar file ${jarFile.getPath} does not exist"))
   }
 
-  def toClassParsers(jarPath: String, jar: JarFile): Seq[ClassParser] =
+  def toClassParsers(jarFile: File, jar: JarFile): Seq[ClassParser] =
     jar.entries().asScala.toSeq.flatMap { entry =>
       if (entry.isDirectory || !entry.getName.endsWith(".class")) None
-      else Some(new ClassParser(jarPath, entry.getName))
+      else Some(new ClassParser(jarFile.getPath, entry.getName))
     }
 
   def toMethodCalls(classParsers: Seq[ClassParser]): Seq[Invokation] =

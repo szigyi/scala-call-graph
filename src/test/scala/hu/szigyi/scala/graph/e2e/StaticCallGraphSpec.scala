@@ -3,6 +3,7 @@ package hu.szigyi.scala.graph.e2e
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import hu.szigyi.scala.graph.Model.*
+import hu.szigyi.scala.graph.ScalaIO
 import hu.szigyi.scala.graph.app.ScalaCallGraph
 import hu.szigyi.scala.graph.service.Service
 import org.scalatest.freespec.{AnyFreeSpec, AsyncFreeSpec}
@@ -15,7 +16,7 @@ class StaticCallGraphSpec extends AnyFreeSpec with Matchers {
 
   "static references" - {
     "should return the static reference from class to object" in {
-      val builder = new JarsBuilder()
+      val builder = new JarsBuilder(new ScalaIO)
       builder.add("ClassA",
         """
           class ClassA {
@@ -30,7 +31,7 @@ class StaticCallGraphSpec extends AnyFreeSpec with Matchers {
           }""")
       val jarFile = builder.build()
 
-      val result = new ScalaCallGraph(new Service).callGraph(jarFile.getPath, None).unsafeRunSync()
+      val result = new ScalaCallGraph(new Service).callGraph(jarFile, None).unsafeRunSync()
 
       result shouldBe Set(
         ClassLevel("java.lang.Object", Set(Special("ClassA", 1), Special("ClassB$", 1))),
@@ -41,7 +42,7 @@ class StaticCallGraphSpec extends AnyFreeSpec with Matchers {
     }
 
     "should return the static references between two objects" in {
-      val builder = new JarsBuilder()
+      val builder = new JarsBuilder(new ScalaIO)
       builder.add("ClassA",
         """
           object ClassA {
@@ -58,7 +59,7 @@ class StaticCallGraphSpec extends AnyFreeSpec with Matchers {
           }""")
       val jarFile = builder.build()
 
-      val result = new ScalaCallGraph(new Service).callGraph(jarFile.getPath, None).unsafeRunSync()
+      val result = new ScalaCallGraph(new Service).callGraph(jarFile, None).unsafeRunSync()
 
       result shouldBe Set(
         ClassLevel("java.lang.Object", Set(Special("ClassA$", 1), Special("ClassB$", 1))),
