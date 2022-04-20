@@ -10,25 +10,19 @@ import scala.deriving.*
 import scala.compiletime.summonAll
 import java.nio.file.Path
 
-class CsvOutput extends StrictLogging {
+class CsvOutput(service: Service) extends StrictLogging {
 
-  def toCsv(classLevels: Set[ClassLevel]): String = {
-    val flattenedInvokations = classLevels.flatMap { classLevel =>
-      classLevel.references.map {
-        case Model.Virtual(className, count)         => ClassInvokation(classLevel.referencedClass, className, count, "virtual")
-        case Model.InterferenceRef(className, count) => ClassInvokation(classLevel.referencedClass, className, count, "interface")
-        case Model.Special(className, count)         => ClassInvokation(classLevel.referencedClass, className, count, "special")
-        case Model.Static(className, count)          => ClassInvokation(classLevel.referencedClass, className, count, "static")
-        case Model.Dynamic(className, count)         => ClassInvokation(classLevel.referencedClass, className, count, "dynamic")
-      }
-    }.toList
+  def toCsv(classLevels: Set[ClassLevel], separateRefTypes: Boolean): String = {
+    val flattenedInvokations =
+      if (separateRefTypes) service.toCsvInvokationByReferenceType(classLevels)
+      else service.toCsvInvokation(classLevels)
     logger.info(s"Converting references to ${flattenedInvokations.size} lines of CSV")
-    transform(flattenedInvokations)
+    transform(flattenedInvokations.toList)
   }
 }
 
 object CsvOutput {
-  case class ClassInvokation(referenced: String, caller: String, count: Int, referenceType: String)
+  case class CsvInvokation(referenced: String, caller: String, count: Int, referenceType: String)
 
   /**
    * Base function we use to convert case classes to CSV.
