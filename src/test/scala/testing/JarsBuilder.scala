@@ -1,8 +1,9 @@
 package testing
 
 import com.typesafe.scalalogging.StrictLogging
-import testing.ScalaIO
-import testing.ScalaIO.*
+import testing.TestingIO
+import testing.TestingIO.*
+import hu.szigyi.scala.graph.ScalaIO.*
 
 import java.io.*
 import java.util.jar.{Attributes, JarEntry, JarOutputStream, Manifest}
@@ -36,7 +37,7 @@ class JarsBuilder extends StrictLogging {
     logger.info(s"Writing ${classFiles.size} scala classes to $TEMP_DIR")
     import scala.jdk.CollectionConverters.*
     classFiles.toSeq.foreach { case (className, classBody) =>
-      writeAsScalaFile(srcDir, className, classBody)
+      writeFile(srcDir, className + ".scala", classBody)
     }
 
     writeFile(root, "build.sbt", buildSbt)

@@ -1,8 +1,11 @@
 package hu.szigyi.scala.graph.app
 
 import cats.effect.{ExitCode, IO, IOApp}
+import hu.szigyi.scala.graph.ScalaIO
 import hu.szigyi.scala.graph.app.ScalaCallGraph
 import hu.szigyi.scala.graph.service.Service
+
+import java.io.File
 
 object Application extends IOApp {
   override def run(args: List[String]): IO[ExitCode] =
@@ -14,8 +17,10 @@ object Application extends IOApp {
 
   private def app(jarPath: String, packagePattern: Option[String]) = {
     for {
-      cg <- IO.pure(new ScalaCallGraph(new Service))
-      _  <- cg.callGraph(jarPath, packagePattern)
+      module <- IO.pure(new Module)
+      graph  <- module.scalaCallGraph.callGraph(jarPath, packagePattern)
+      csv     = module.csvOutput.toCsv(graph)
+      _       = ScalaIO.writeFile(new File("."), "scala_callgraph.csv", csv)
     } yield ()
   }
 }
