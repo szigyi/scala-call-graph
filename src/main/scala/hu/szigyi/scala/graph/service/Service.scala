@@ -43,11 +43,11 @@ class Service extends StrictLogging {
       val dynamicCallers   = callersByClass.getOrElse("DynamicInvokation", Seq.empty)
 
       val invokes = callers.toSet.map {
-        case VirtualInvokation(caller, _)   => Virtual(caller.className, virtualCallers.collect { case c if c.caller == caller => c }.size)
-        case InterfaceInvokation(caller, _) => InterferenceRef(caller.className, interfaceCallers.collect { case c if c.caller == caller => c }.size)
-        case SpecialInvokation(caller, _)   => Special(caller.className, specialCallers.collect { case c if c.caller == caller => c }.size)
-        case StaticInvokation(caller, _)    => Static(caller.className, staticCallers.collect { case c if c.caller == caller => c }.size)
-        case DynamicInvokation(caller, _)   => Dynamic(caller.className, dynamicCallers.collect { case c if c.caller == caller => c }.size)
+        case VirtualInvokation(caller, _)   => Virtual(caller.className, virtualCallers.count(_.caller == caller))
+        case InterfaceInvokation(caller, _) => InterfaceRef(caller.className, interfaceCallers.count(_.caller == caller))
+        case SpecialInvokation(caller, _)   => Special(caller.className, specialCallers.count(_.caller == caller))
+        case StaticInvokation(caller, _)    => Static(caller.className, staticCallers.count(_.caller == caller))
+        case DynamicInvokation(caller, _)   => Dynamic(caller.className, dynamicCallers.count(_.caller == caller))
       }
       if (index % 10000 == 0) logger.debug(s"$index:${call.called.className}")
       ClassLevel(call.called.className, invokes)
@@ -74,7 +74,7 @@ class Service extends StrictLogging {
     classLevels.flatMap { classLevel =>
       classLevel.references.map {
         case Model.Virtual(className, count)         => CsvInvokation(classLevel.referencedClass, className, count, "virtual")
-        case Model.InterferenceRef(className, count) => CsvInvokation(classLevel.referencedClass, className, count, "interface")
+        case Model.InterfaceRef(className, count) => CsvInvokation(classLevel.referencedClass, className, count, "interface")
         case Model.Special(className, count)         => CsvInvokation(classLevel.referencedClass, className, count, "special")
         case Model.Static(className, count)          => CsvInvokation(classLevel.referencedClass, className, count, "static")
         case Model.Dynamic(className, count)         => CsvInvokation(classLevel.referencedClass, className, count, "dynamic")

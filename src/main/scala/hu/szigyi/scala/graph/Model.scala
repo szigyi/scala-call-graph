@@ -32,7 +32,7 @@ object Model {
     val count: Int
   }
   case class Virtual(className: String, count: Int) extends Reference
-  case class InterferenceRef(className: String, count: Int) extends Reference
+  case class InterfaceRef(className: String, count: Int) extends Reference
   case class Special(className: String, count: Int) extends Reference
   case class Static(className: String, count: Int) extends Reference
   case class Dynamic(className: String, count: Int) extends Reference
