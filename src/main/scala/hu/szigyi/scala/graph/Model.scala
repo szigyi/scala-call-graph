@@ -2,6 +2,7 @@ package hu.szigyi.scala.graph
 
 object Model {
 
+  // Internal Reference Models
   case class ClassMethod(className: String, method: String)
 
   sealed trait Invokation {
@@ -14,7 +15,7 @@ object Model {
   case class StaticInvokation(caller: ClassMethod, called: ClassMethod) extends Invokation
   case class DynamicInvokation(caller: ClassMethod, called: ClassMethod) extends Invokation
 
-
+  // Graph Models
   /**
    * references => referencedClass
    * references called referencedClass in the sourcecode
@@ -36,4 +37,7 @@ object Model {
   case class Special(className: String, count: Int) extends Reference
   case class Static(className: String, count: Int) extends Reference
   case class Dynamic(className: String, count: Int) extends Reference
+
+  // Output Models
+  case class OutputInvokation(referenced: String, caller: String, count: Int, referenceType: String)
 }

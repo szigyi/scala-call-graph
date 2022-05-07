@@ -12,18 +12,20 @@ object Application extends IOApp {
   override def run(args: List[String]): IO[ExitCode] =
     (for {
       jarFile          <- IO.pure(new File(args.head))
-      csvOutputDir      = new File(args(1))
+      outputDir         = new File(args(1))
       separateRefTypes  = if (args.size > 2 && args(2) == "separateRefTypes") true else false
       packagePattern    = Option.when(args.size > 3)(args(3))
-      _                <- app(jarFile, packagePattern, separateRefTypes, csvOutputDir)
+      _                <- app(jarFile, packagePattern, separateRefTypes, outputDir)
     } yield ()).map(_ => ExitCode.Success)
 
-  private def app(jarFile: File, packagePattern: Option[String], separateRefTypes: Boolean, csvOutputDir: File) = {
+  private def app(jarFile: File, packagePattern: Option[String], separateRefTypes: Boolean, outputDir: File) = {
     for {
       module <- IO.pure(new Module)
       graph  <- module.scalaCallGraph.callGraph(jarFile, packagePattern)
       csv     = module.csvOutput.toCsv(graph, separateRefTypes)
-      _       = module.io.writeFile(csvOutputDir, s"scala_callgraph_${jarFile.getName}_${Instant.now()}.csv", csv)
+      json    = module.jsonOutput.toJson(graph, separateRefTypes)
+      _       = module.io.writeFile(outputDir, s"scala_callgraph_${jarFile.getName}_${Instant.now()}.csv", csv)
+      _       = module.io.writeFile(outputDir, s"scala_callgraph_${jarFile.getName}_${Instant.now()}.json", json)
     } yield ()
   }
 }

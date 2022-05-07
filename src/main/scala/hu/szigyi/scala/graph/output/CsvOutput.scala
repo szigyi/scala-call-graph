@@ -1,28 +1,26 @@
-package hu.szigyi.scala.graph.service
+package hu.szigyi.scala.graph.output
 
 import com.typesafe.scalalogging.StrictLogging
 import hu.szigyi.scala.graph.Model
-import hu.szigyi.scala.graph.Model.{ClassLevel, ClassMethod, Reference, VirtualInvokation}
-import hu.szigyi.scala.graph.service.CsvOutput.*
+import hu.szigyi.scala.graph.Model.{ClassLevel, ClassMethod, OutputInvokation, Reference, VirtualInvokation}
+import hu.szigyi.scala.graph.output.CsvOutput.*
+import hu.szigyi.scala.graph.service.Service
 
 import java.net.URL
-import scala.deriving.*
-import scala.compiletime.summonAll
 import java.nio.file.Path
+import scala.compiletime.{summonAll, summonInline}
+import scala.deriving.*
 
 class CsvOutput(service: Service) extends StrictLogging {
 
   def toCsv(classLevels: Set[ClassLevel], separateRefTypes: Boolean): String = {
-    val flattenedInvokations =
-      if (separateRefTypes) service.toCsvInvokationByReferenceType(classLevels)
-      else service.toCsvInvokation(classLevels)
+    val flattenedInvokations = service.toOutputInvokation(classLevels, separateRefTypes)
     logger.info(s"Converting references to ${flattenedInvokations.size} lines of CSV")
     transform(flattenedInvokations.toList)
   }
 }
 
 object CsvOutput {
-  case class CsvInvokation(referenced: String, caller: String, count: Int, referenceType: String)
 
   /**
    * Base function we use to convert case classes to CSV.
@@ -42,9 +40,6 @@ object CsvOutput {
 
   given Transformer[Int] with
     def f(x: Int): String = x.toString
-
-  given Transformer[Double] with
-    def f(x: Double) = f"$x%.2f"
 
   given [T] (using t: Transformer[T]): Transformer[Option[T]] =
     (x: Option[T]) => x match

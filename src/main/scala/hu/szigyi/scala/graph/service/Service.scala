@@ -2,9 +2,7 @@ package hu.szigyi.scala.graph.service
 
 import cats.effect.IO
 import com.typesafe.scalalogging.StrictLogging
-import hu.szigyi.scala.graph.Model
 import hu.szigyi.scala.graph.Model.*
-import hu.szigyi.scala.graph.service.CsvOutput.CsvInvokation
 import hu.szigyi.scala.graph.visitor.ClassVisitor
 import org.apache.bcel.classfile.ClassParser
 
@@ -70,21 +68,22 @@ class Service extends StrictLogging {
     }
   }
 
-  def toCsvInvokationByReferenceType(classLevels: Set[ClassLevel]): Seq[CsvInvokation] =
-    classLevels.flatMap { classLevel =>
-      classLevel.references.map {
-        case Model.Virtual(className, count)         => CsvInvokation(classLevel.referencedClass, className, count, "virtual")
-        case Model.InterfaceRef(className, count) => CsvInvokation(classLevel.referencedClass, className, count, "interface")
-        case Model.Special(className, count)         => CsvInvokation(classLevel.referencedClass, className, count, "special")
-        case Model.Static(className, count)          => CsvInvokation(classLevel.referencedClass, className, count, "static")
-        case Model.Dynamic(className, count)         => CsvInvokation(classLevel.referencedClass, className, count, "dynamic")
-      }
-    }.toList
-
-  def toCsvInvokation(classLevels: Set[ClassLevel]): Seq[CsvInvokation] =
-    classLevels.flatMap { classLevel =>
-      classLevel.references.groupBy(_.className).map {
-        case (referenceClassName, references) => CsvInvokation(classLevel.referencedClass, referenceClassName, references.map(_.count).sum, "")
-      }
-    }.toList
+  def toOutputInvokation(classLevels: Set[ClassLevel], separateRefTypes: Boolean): Seq[OutputInvokation] =
+    if (separateRefTypes) {
+      classLevels.flatMap { classLevel =>
+        classLevel.references.map {
+          case Virtual(className, count)         => OutputInvokation(classLevel.referencedClass, className, count, "virtual")
+          case InterfaceRef(className, count)    => OutputInvokation(classLevel.referencedClass, className, count, "interface")
+          case Special(className, count)         => OutputInvokation(classLevel.referencedClass, className, count, "special")
+          case Static(className, count)          => OutputInvokation(classLevel.referencedClass, className, count, "static")
+          case Dynamic(className, count)         => OutputInvokation(classLevel.referencedClass, className, count, "dynamic")
+        }
+      }.toList
+    } else {
+      classLevels.flatMap { classLevel =>
+        classLevel.references.groupBy(_.className).map {
+          case (referenceClassName, references) => OutputInvokation(classLevel.referencedClass, referenceClassName, references.map(_.count).sum, "")
+        }
+      }.toList
+    }
 }
