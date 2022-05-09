@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+    .links line {
+        stroke: #999;
+        stroke-opacity: 0.6;
+    }
+
+    .nodes circle {
+        stroke: #fff;
+        stroke-width: 1.5px;
+    }
+
+    text {
+        /*visibility: hidden;*/
+        font: 12px sans-serif;
+    }
+
+</style>
+
+<input type="range" id="number-of-links" min="0" max="800" value="650" step="10" onchange="loadJson(this.value)" style="width: 900px;">
+<span id="graph-size"></span>
+
+<svg id="canvas" width="1200" height="900">
+</svg>
+
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3-sankey/0.12.3/d3-sankey.min.js"></script>
+<script src="sankey-chart.js"></script>
+<script>
+    const loadJson = (numberOfLinks) => d3.json("scala_callgraph_collar_2.13-0.1.unknown.jar_2022-04-22T12:34:11.225561Z.json").then(graph => {
+        console.log('Graph is parsed')
+
+        function uniqBy(a, key) {
+            let seen = new Set();
+            return a.filter(item => {
+                let k = key(item);
+                return seen.has(k) ? false : seen.add(k);
+            });
+        }
+
+        // graph.links = graph.links.sort((a, b) => b.value - a.value).filter(l => l.value > numberOfLinks)
+        graph.links = graph.links
+            .filter(l => l.source !== l.target) // remove self references
+            .filter(l => l.value > numberOfLinks) // remove weak links, not well-connected classes
+        // graph.links.sort((a, b) => a.value - b.value)
+        const sourceClazz = new Set(graph.links.map(link => link.source))
+        const targetClazz = new Set(graph.links.map(link => link.target))
+        graph.nodes = uniqBy(graph.nodes, JSON.stringify) // remove duplicate nodes
+        graph.nodes = graph.nodes.filter(node => (sourceClazz.has(node.id) || targetClazz.has(node.id)))
+        document.getElementById("graph-size").textContent = "Links: " + graph.links.length + ", Nodes: " + graph.nodes.length
+
+        let invalidation = new Promise((resolve, reject) => {
+            setTimeout(() => {
+                resolve('foo')
+            }, 1000)
+        })
+        const e = document.getElementById('canvas')
+        let child = e.lastElementChild
+        while (child) {
+            e.removeChild(child);
+            child = e.lastElementChild
+        }
+
+        SankeyChart(graph, {
+            nodeGroup: d => d.id.split(/\W/)[0], // take first word for color
+            nodeAlign: d3.sankeyJustify, // e.g., d3.sankeyJustify; set by input above
+            linkColor: "source", // e.g., "source" or "target"; set by input above
+            format: (f => d => `${f(d)}`)(d3.format(",.1~f")),
+            width: 1200,
+            height: 1900
+        })
+    })
+
+    console.log('Loading json')
+    loadJson(document.getElementById("number-of-links").value)
+</script>
